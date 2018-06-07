@@ -1,0 +1,12 @@
+
+local appdir = whereami:match('^(.-[/\\])[^/\\]*$') or ''
+package.path = appdir .. '?.lua;' .. appdir .. '?/init.lua'
+package.cpath = appdir .. '?.dll;' .. appdir .. 'lib?.so'
+whereami = nil
+
+print(package.path)
+print(package.cpath)
+
+print('press return to quit')
+io.read(1)
+
