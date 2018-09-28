@@ -31,10 +31,12 @@ to appear at start of the application).
 
 // TODO : document gcc linker ORIGIN
 
-The result app, `applua.exe`, will simply load the `init` file in the same
-directory and run it as lua source/bytecode. The script will have access to the
-common lua globals, plus an `whereami` variable. This contains the absolute
-path to the executable file.
+The result app, `applua.exe`, will simply load the `lua.init` file in the same
+directory and run it as lua source/bytecode. If that file can not be found,
+applua will try a file with same name of the binary but the `lua` extension.
+
+The script will have access to the common lua globals, plus an `whereami`
+variable. This contains the absolute path to the executable file.
 
 Note that you can find similar tools around the web, e.g.
 [l-bia](http://l-bia.sourceforge.net) (but I never tryed it).
