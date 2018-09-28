@@ -82,14 +82,9 @@ int luamain_start(lua_State *L, char* script, int size, int argc, char **argv) {
   }
 
   // os signal handler
-  int handler_installed = 0;
-  struct sigaction sa;
-  sigaction(SIGINT, NULL, &sa);
-  if (sa.sa_handler == SIG_DFL) {
-    globalL = L;  // to be available to 'sigint_handler'
-    signal(SIGINT, sigint_handler);  // set C-signal handler
-    handler_installed = 1;
-  }
+  void * old_handler = signal(SIGINT, NULL);
+  globalL = L;  // to be available to 'sigint_handler'
+  signal(SIGINT, sigint_handler);  // set C-signal handler
 
   luaL_openlibs(L);  // open standard libraries
 
@@ -139,10 +134,8 @@ int luamain_start(lua_State *L, char* script, int size, int argc, char **argv) {
 luamain_end:
 
   // clear C-signal handler
-  if (handler_installed) {
-    if (sa.sa_handler == sigint_handler) signal(SIGINT, SIG_DFL);
-    globalL = NULL;
-  }
+  signal(SIGINT, old_handler);
+  globalL = NULL;
 
   if (base>0) lua_remove(L, base);  // remove lua message handler
   if (create_lua) lua_close(L);
