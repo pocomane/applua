@@ -153,14 +153,3 @@ SHFUNC lua_State* luamain_setup(lua_State *L, int argc, char **argv) {
   return L;
 }
 
-SHFUNC int luamain_start(lua_State *L, char* script, int size, int argc, char **argv) {
-  int create_lua = 0;
-  if (L == NULL)
-    create_lua = 1;
-  L = luamain_setup(L, argc, argv);
-  if (L == NULL) return FAIL_ALLOC;
-  int status = luamain_exec(L, script, 0, 0);
-  if (create_lua) lua_close(L);
-  return status;
-}
-
