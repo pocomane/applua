@@ -6,7 +6,7 @@
 #include "luamain.h"
 #include "lauxlib.h"
 
-int back_search(const char * str, const char * chs, int pos){
+static int back_search(const char * str, const char * chs, int pos){
   int found = 0;
   int i;
   if (pos < 0) pos = strlen(str);
@@ -20,7 +20,7 @@ int back_search(const char * str, const char * chs, int pos){
 
 int main(int argc, char** argv) {
 
-  lua_State * L = luaL_newstate();
+  lua_State * L = luamain_setup(0, argc, argv);
 
   char * exe_path = argv[0];
   int length;
@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
 
       fprintf(stderr, "Can not open neither %s or %s\n", init_path, spec_path);
       return -1;
+
     }
   }
   fseek(in, 0, SEEK_END);
@@ -78,6 +79,6 @@ int main(int argc, char** argv) {
 
   fclose(in);
 
-  return luamain_start(L, script, size, argc, argv);
+  return luamain_exec(L, script, __FILE__, __LINE__);
 }
 

@@ -1,4 +1,6 @@
 
+#include "luamain.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -69,49 +71,29 @@ static void report_error(lua_State *L, const char * title){
   lua_pcall(L, 2, 1, 0);
 }
 
-int luamain_start(lua_State *L, char* script, int size, int argc, char **argv) {
-  int status;
-  int create_lua = 0;
+SHFUNC int luamain_exec(lua_State *L, char* script, char* src, int lin) {
   int base = 0;
- 
-  // create state as needed 
-  if (L == NULL) {
-    create_lua = 1;
-    L = luaL_newstate();
-    if (L == NULL) return FAIL_ALLOC;
-  }
+  int status;
+  int size = strlen(script);
 
   // os signal handler
   void * old_handler = signal(SIGINT, NULL);
   globalL = L;  // to be available to 'sigint_handler'
   signal(SIGINT, sigint_handler);  // set C-signal handler
 
-  luaL_openlibs(L);  // open standard libraries
-
   // Prepare the stack with the error handler
   lua_pushcfunction(L, msghandler);
   base = lua_gettop(L);
 
-  // Create a table to store the command line arguments
-  lua_createtable(L, argc-1, 1);
-
-  // Arg 0 : command-line-like path to the executable:
-  // it may be a link and/or be relative to the current directory
-  lua_pushstring(L, argv[0]);
-  lua_rawseti(L, -2, 0);
-
-  // Args N... : command line arguments
-  for (int i = 1; i < argc; i++) {
-    lua_pushstring(L, argv[i]);
-    lua_rawseti(L, -2, i);
-  }
-
-  // Save the table in the global namespace
-  lua_setglobal(L, "arg");
-
   // Load the script in the stack
   if (size < 0) size = strlen(script);
-  status = luaL_loadbuffer(L, script, size, "embedded");
+  if (src && lin) {
+    char info[strlen(src)+32];
+    snprintf(info, sizeof(info), "emedded:%s:%d\n", src, lin);
+    status = luaL_loadbuffer(L, script, size, info);
+  } else {
+    status = luaL_loadbuffer(L, script, size, "embedded");
+  }
   if (!is_lua_ok(status)) {
     report_error(L, "An error occurred during the script load.");
     status = FAIL_EXECUTION;
@@ -138,6 +120,46 @@ luamain_end:
   globalL = NULL;
 
   if (base>0) lua_remove(L, base);  // remove lua message handler
+  return status;
+}
+
+SHFUNC lua_State* luamain_setup(lua_State *L, int argc, char **argv) {
+
+  // create state as needed
+  if (L == NULL) {
+    L = luaL_newstate();
+    if (L == NULL) return NULL;
+  }
+
+  luaL_openlibs(L);  // open standard libraries
+
+  // Create a table to store the command line arguments
+  lua_createtable(L, argc-1, 1);
+
+  // Arg 0 : command-line-like path to the executable:
+  // it may be a link and/or be relative to the current directory
+  lua_pushstring(L, argv[0]);
+  lua_rawseti(L, -2, 0);
+
+  // Args N... : command line arguments
+  for (int i = 1; i < argc; i++) {
+    lua_pushstring(L, argv[i]);
+    lua_rawseti(L, -2, i);
+  }
+
+  // Save the table in the global namespace
+  lua_setglobal(L, "arg");
+
+  return L;
+}
+
+SHFUNC int luamain_start(lua_State *L, char* script, int size, int argc, char **argv) {
+  int create_lua = 0;
+  if (L == NULL)
+    create_lua = 1;
+  L = luamain_setup(L, argc, argv);
+  if (L == NULL) return FAIL_ALLOC;
+  int status = luamain_exec(L, script, 0, 0);
   if (create_lua) lua_close(L);
   return status;
 }
