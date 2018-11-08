@@ -7,6 +7,10 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#ifndef SHFUNC
+  #define SHFUNC
+#endif
+
 #define FAIL_INIT -125
 #define FAIL_ALLOC -126
 #define FAIL_EXECUTION -127
