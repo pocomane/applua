@@ -11,9 +11,9 @@ simpler one without a REPL. It neither parses in any way the command line
 argument: it can be done in lua. With the help of some library with lua binding
 (e.g. libuv) also a REPL can be implemented.
 
-Any file without an explicit license reference is in the Public Domain. The
-MIT-0 license can be alternatively applied. Please see the COPYING.txt file for
-more informations.
+This software is released under the [Unlicense](http://unlicense.org), so the
+legal statement in COPYING.txt applies, unless differently stated in individual
+files.
 
 Build and usage
 ----------------
